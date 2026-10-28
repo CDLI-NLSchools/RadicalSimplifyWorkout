@@ -64,6 +64,7 @@
   .solution h3{margin:0 0 8px;}
   .solution .line{font-size:1.08rem;padding:3px 0;border-bottom:1px dashed var(--line);}
   .solution .line:last-child{border-bottom:none;}
+  .solution .resultline{font-size:1.45rem;font-weight:700;text-align:center;padding:8px 6px 10px;border-bottom:2px solid var(--line);margin-bottom:6px;overflow-x:auto;}
   .navbtns{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px;}
   .summary{font-size:1.1rem;text-align:center;padding:12px 6px;}
   .hidden{display:none !important;}
@@ -504,9 +505,7 @@ function stepDefs(item) {
 }
 
 function solutionLines(item) {
-  var lines = stepDefs(item).map(function (s) { return s.shown; });
-  lines.push("Answer: " + answerText(item));
-  return lines;
+  return stepDefs(item).map(function (s) { return s.shown; });
 }
 // ==END GENERATOR==
 
@@ -582,6 +581,31 @@ function itemHTML(item) {
       return "1 / " + radHTML(2, escapeHTML(linearText(p)));
   }
   return "";
+}
+function answerHTML(item) {
+  var k = item.key, p = item.params;
+  switch (item.shape) {
+    case "simpNum": case "meOut":
+      return (k.coeff === 1 ? "" : String(k.coeff)) + radHTML(p.index, String(k.radicand));
+    case "meIn":
+      return radHTML(p.index, String(k.radicand));
+    case "simpVar1": case "simpVar2": {
+      var inside = (k.inNum === 1 ? "" : String(k.inNum)) + p.varOrder.map(function (n) { return varHTML(n, k.inVars[n]); }).join("");
+      return (k.coeff === 1 ? "" : String(k.coeff)) + p.varOrder.map(function (n) { return varHTML(n, k.outVars[n]); }).join("") + radHTML(p.index, inside);
+    }
+    case "compare":
+      return k.order.map(function (i) {
+        var t = p.terms[i];
+        return (t.coeff === 1 ? "" : String(t.coeff)) + radHTML(p.index, String(t.radicand));
+      }).join(" &lt; ");
+    case "restrPlain": case "restrDenom":
+      return escapeHTML(answerText(item));
+  }
+  return "";
+}
+function resultHTML(item) {
+  if (item.shape === "compare" || item.shape === "restrPlain" || item.shape === "restrDenom") return answerHTML(item);
+  return itemHTML(item) + " = " + answerHTML(item);
 }
 function shapeLabel(item) {
   switch (item.shape) {
@@ -762,6 +786,10 @@ function showSolution() {
   var entry = session[sessionIndex];
   if (!entry) return;
   solutionLinesEl.innerHTML = "";
+  var res = document.createElement("div");
+  res.className = "resultline";
+  res.innerHTML = resultHTML(entry.item);
+  solutionLinesEl.appendChild(res);
   solutionLines(entry.item).forEach(function (line) {
     var d = document.createElement("div");
     d.className = "line";
