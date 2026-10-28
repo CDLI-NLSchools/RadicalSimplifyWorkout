@@ -1,0 +1,884 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Radical Simplify Workout — Math 2201</title>
+<style>
+  :root{
+    --ink:#1c2430; --muted:#5a6572; --accent:#0b5cad; --accent-dark:#084a8a;
+    --ok:#177245; --bad:#b3261e; --card:#ffffff; --bg:#eef2f6; --line:#d4dce4;
+    --soft:#f4f8fc;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:var(--bg);color:var(--ink);line-height:1.45;}
+  .wrap{max-width:720px;margin:0 auto;padding:16px 14px 48px;}
+  header{margin:10px 0 14px;}
+  h1{font-size:1.7rem;margin:0 0 2px;}
+  .subtitle{color:var(--muted);font-size:1rem;margin:0 0 8px;}
+  .instruction{font-size:1.02rem;margin:0;}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;
+    padding:16px;margin:14px 0;box-shadow:0 1px 3px rgba(20,40,60,.06);}
+  .controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center;}
+  .controls label{font-weight:600;}
+  select,button{font:inherit;}
+  select{padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:#fff;min-height:44px;}
+  button{cursor:pointer;border:1px solid var(--accent);background:var(--accent);color:#fff;
+    padding:9px 16px;border-radius:8px;min-height:44px;font-weight:600;}
+  button:hover{background:var(--accent-dark);}
+  button.secondary{background:#fff;color:var(--accent);}
+  button.secondary:hover{background:var(--soft);}
+  button:disabled{opacity:.55;cursor:default;}
+  button:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid #f2b01e;outline-offset:2px;}
+  .score{margin-left:auto;color:var(--muted);font-size:.95rem;}
+  .score strong{color:var(--ink);}
+  .equation{font-size:1.45rem;text-align:center;padding:10px 6px 4px;overflow-x:auto;}
+  .eq-label{text-align:center;color:var(--muted);font-size:.92rem;margin:0;}
+  .kindtag{display:inline-block;background:var(--soft);border:1px solid var(--line);
+    border-radius:999px;padding:2px 10px;font-size:.85rem;color:var(--accent-dark);font-weight:600;}
+  .roletag{display:inline-block;background:#fdf3e0;border:1px solid #e8cf9a;
+    border-radius:999px;padding:2px 10px;font-size:.85rem;color:#7a5a12;font-weight:600;margin-left:6px;}
+  .step{border:1px solid var(--line);border-radius:10px;padding:14px;margin:12px 0;background:#fff;}
+  .step.done{border-color:var(--ok);background:#f2faf5;}
+  .step.given{border-color:var(--line);background:var(--soft);}
+  .step h3{margin:0 0 6px;font-size:1.05rem;}
+  .step .prompt{margin:0 0 10px;}
+  .shownline{font-size:1.1rem;margin:2px 0;}
+  .fields{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;}
+  .field{display:flex;flex-direction:column;gap:3px;}
+  .field label{font-size:.85rem;color:var(--muted);font-weight:600;}
+  .field input{width:86px;padding:9px 10px;font:inherit;font-size:1.05rem;border:1px solid var(--line);
+    border-radius:8px;min-height:44px;}
+  .field select{max-width:250px;}
+  .field input:disabled{background:var(--soft);color:var(--muted);}
+  .stepbtns{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;}
+  .feedback{margin:10px 0 0;min-height:1.3em;font-weight:600;}
+  .feedback.ok{color:var(--ok);}
+  .feedback.bad{color:var(--bad);}
+  .rad{display:inline-block;border-top:2px solid currentColor;padding:0 2px;margin-left:1px;}
+  .idx{font-size:.62em;}
+  .cmpterm{display:inline-block;margin:2px 16px;}
+  .cmpnum{color:var(--muted);font-size:.85em;font-weight:700;}
+  .solution{background:var(--soft);border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin-top:14px;}
+  .solution h3{margin:0 0 8px;}
+  .solution .line{font-size:1.08rem;padding:3px 0;border-bottom:1px dashed var(--line);}
+  .solution .line:last-child{border-bottom:none;}
+  .navbtns{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px;}
+  .summary{font-size:1.1rem;text-align:center;padding:12px 6px;}
+  .hidden{display:none !important;}
+  @media (max-width:480px){
+    h1{font-size:1.4rem;}
+    .equation{font-size:1.2rem;}
+    .field input{width:74px;}
+    .score{margin-left:0;width:100%;}
+    .cmpterm{margin:2px 8px;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Radical Simplify Workout</h1>
+    <p class="subtitle">Math 2201 · Unit 4 — Radicals</p>
+    <p class="instruction">Simplify exactly, one step at a time; check each step as you go.</p>
+  </header>
+
+  <div class="card controls" role="group" aria-label="Workout controls">
+    <label for="modeSelect">Mode</label>
+    <select id="modeSelect">
+      <option value="numbers" selected>Simplify — numbers</option>
+      <option value="variables">Simplify — variables</option>
+      <option value="mixedentire">Mixed ↔ Entire</option>
+      <option value="compare">Compare and Order</option>
+      <option value="restrictions">Restrictions</option>
+      <option value="mixed">Mixed set (all modes)</option>
+    </select>
+    <button type="button" id="newSetBtn">New set</button>
+    <span class="score" id="scoreLine" aria-live="polite"></span>
+  </div>
+
+  <main class="card" id="itemCard">
+    <p class="eq-label"><span class="kindtag" id="kindTag"></span><span class="roletag" id="roleTag"></span></p>
+    <div class="equation" id="itemDisplay"></div>
+    <p class="eq-label" id="itemNote"></p>
+    <div id="stepsContainer"></div>
+    <div class="navbtns">
+      <button type="button" id="nextBtn" class="hidden">Next item</button>
+      <button type="button" id="continueBtn" class="hidden">Continue</button>
+    </div>
+    <div class="solution hidden" id="solutionPanel" aria-live="polite">
+      <h3>Worked solution</h3>
+      <div id="solutionLines"></div>
+    </div>
+    <div class="summary hidden" id="summaryPanel"></div>
+  </main>
+</div>
+
+<script>
+"use strict";
+// ==GENERATOR==
+// Pure generator / answer-key logic for RadicalSimplifyWorkout. No DOM access in this section.
+
+function randInt(min, max) { // inclusive
+  return min + Math.floor(Math.random() * (max - min + 1));
+}
+function pickFrom(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+// True when n (>= 1) has no factor of the form i^index (i >= 2).
+function isIndexFree(n, index) {
+  if (n < 1) return false;
+  for (var i = 2; Math.pow(i, index) <= n; i++) {
+    if (n % Math.pow(i, index) === 0) return false;
+  }
+  return true;
+}
+function indexFreeList(index, max) {
+  var out = [];
+  for (var n = 2; n <= max; n++) if (isIndexFree(n, index)) out.push(n);
+  return out;
+}
+// n = coeff^index * leftover with leftover index-free.
+function extractPower(n, index) {
+  var coeff = 1, rest = n;
+  for (var i = 2; Math.pow(i, index) <= rest; i++) {
+    var p = Math.pow(i, index);
+    while (rest % p === 0) { rest = rest / p; coeff = coeff * i; }
+  }
+  return { coeff: coeff, leftover: rest };
+}
+
+// ---- Plain-text formatting helpers ----
+
+var SUPERSCRIPT = { "0": "⁰", "1": "¹", "2": "²", "3": "³", "4": "⁴", "5": "⁵", "6": "⁶", "7": "⁷", "8": "⁸", "9": "⁹" };
+function supText(n) {
+  return String(n).split("").map(function (c) { return SUPERSCRIPT[c] || c; }).join("");
+}
+function rootSym(index) { return index === 2 ? "√" : "∛"; }
+function varFactorText(name, exp) {
+  if (exp === 0) return "";
+  return exp === 1 ? name : name + supText(exp);
+}
+function varProductText(order, exps) {
+  return order.map(function (n) { return varFactorText(n, exps[n]); }).join("");
+}
+function radicalText(coeff, index, inside) {
+  return (coeff === 1 ? "" : String(coeff)) + rootSym(index) + inside;
+}
+function linearText(p) {
+  var aPart = p.a === 1 ? "x" : p.a + "x";
+  if (p.b > 0) return aPart + " + " + p.b;
+  if (p.b < 0) return aPart + " − " + Math.abs(p.b);
+  return aPart;
+}
+
+// ---- Item builders and keys (keys are computed from params, never echoed from build choices) ----
+
+function keySimpNum(params) {
+  var ex = extractPower(params.radicand, params.index);
+  return { coeff: ex.coeff, radicand: ex.leftover, factor: Math.pow(ex.coeff, params.index) };
+}
+function buildSimpNum(index, coeff, leftover) {
+  var params = { index: index, radicand: Math.pow(coeff, index) * leftover };
+  return { shape: "simpNum", params: params, key: keySimpNum(params) };
+}
+function genSimpNum() {
+  var index = Math.random() < 0.5 ? 2 : 3;
+  var coeff = index === 2 ? randInt(2, 12) : randInt(2, 6);
+  var leftover = pickFrom(indexFreeList(index, index === 2 ? 30 : 40));
+  return buildSimpNum(index, coeff, leftover);
+}
+
+function keySimpVar(params) {
+  var ex = extractPower(params.radicandNum, params.index);
+  var outVars = {}, inVars = {};
+  params.varOrder.forEach(function (name) {
+    outVars[name] = Math.floor(params.totals[name] / params.index);
+    inVars[name] = params.totals[name] % params.index;
+  });
+  return { coeff: ex.coeff, inNum: ex.leftover, outVars: outVars, inVars: inVars };
+}
+function buildSimpVar(shape, index, numCoeff, numLeftover, varSpecs) {
+  var totals = {}, order = [];
+  varSpecs.forEach(function (v) {
+    totals[v.name] = index * v.out + v["in"];
+    order.push(v.name);
+  });
+  var params = {
+    index: index,
+    radicandNum: Math.pow(numCoeff, index) * numLeftover,
+    totals: totals,
+    varOrder: order
+  };
+  return { shape: shape, params: params, key: keySimpVar(params) };
+}
+function genSimpVar(shape) {
+  var index = Math.random() < 0.5 ? 2 : 3;
+  var numCoeff = index === 2 ? randInt(2, 9) : randInt(2, 4);
+  var names = shape === "simpVar1" ? [pickFrom(["x", "y"])] : ["x", "y"];
+  for (var tries = 0; tries < 200; tries++) {
+    var specs = names.map(function (name) {
+      return { name: name, out: randInt(1, index === 2 ? 4 : 3), "in": randInt(0, index - 1) };
+    });
+    if (shape === "simpVar2" && Math.random() < 0.35) {
+      // Sometimes the second variable appears only inside the radical.
+      specs[1] = { name: specs[1].name, out: 0, "in": randInt(1, index - 1) };
+    }
+    var numLeftover = pickFrom([1].concat(indexFreeList(index, 30)));
+    var anyIn = specs.some(function (s) { return s["in"] > 0; });
+    if (numLeftover === 1 && !anyIn) continue; // something must stay inside the radical
+    return buildSimpVar(shape, index, numCoeff, numLeftover, specs);
+  }
+  throw new Error("simpVar generation failed");
+}
+
+function keyMeIn(params) {
+  var power = Math.pow(params.coeff, params.index);
+  return { power: power, radicand: power * params.leftover };
+}
+function buildMeIn(index, coeff, leftover) {
+  var params = { index: index, coeff: coeff, leftover: leftover };
+  return { shape: "meIn", params: params, key: keyMeIn(params) };
+}
+function genMeIn() {
+  var index = Math.random() < 0.5 ? 2 : 3;
+  var coeff = index === 2 ? randInt(2, 12) : randInt(2, 6);
+  var leftover = pickFrom(indexFreeList(index, 30));
+  return buildMeIn(index, coeff, leftover);
+}
+function buildMeOut(index, coeff, leftover) {
+  var params = { index: index, radicand: Math.pow(coeff, index) * leftover };
+  return { shape: "meOut", params: params, key: keySimpNum(params) };
+}
+function genMeOut() {
+  var index = Math.random() < 0.5 ? 2 : 3;
+  var coeff = index === 2 ? randInt(2, 12) : randInt(2, 6);
+  var leftover = pickFrom(indexFreeList(index, 30));
+  return buildMeOut(index, coeff, leftover);
+}
+
+function keyCompare(params) {
+  var entire = params.terms.map(function (t) {
+    return Math.pow(t.coeff, params.index) * t.radicand;
+  });
+  var order = [0, 1, 2].sort(function (a, b) { return entire[a] - entire[b]; });
+  return { entire: entire, order: order };
+}
+function buildCompare(index, terms) {
+  var params = { index: index, terms: terms };
+  return { shape: "compare", params: params, key: keyCompare(params) };
+}
+function genCompare() {
+  var index = Math.random() < 0.6 ? 2 : 3;
+  for (var tries = 0; tries < 500; tries++) {
+    var terms = [], used = {};
+    while (terms.length < 3) {
+      var coeff = randInt(2, 7);
+      var rad = pickFrom(indexFreeList(index, 20));
+      var id = coeff + ":" + rad;
+      if (used[id]) continue;
+      used[id] = 1;
+      terms.push({ coeff: coeff, radicand: rad });
+    }
+    var key = keyCompare({ index: index, terms: terms });
+    if (key.entire[0] === key.entire[1] || key.entire[1] === key.entire[2] || key.entire[0] === key.entire[2]) continue;
+    return buildCompare(index, terms);
+  }
+  throw new Error("compare generation failed");
+}
+
+function keyRestr(shape, params) {
+  return { relation: shape === "restrDenom" ? ">" : "≥", boundary: -params.b / params.a };
+}
+function buildRestr(shape, a, t) {
+  var params = { a: a, b: -a * t };
+  return { shape: shape, params: params, key: keyRestr(shape, params) };
+}
+function genRestr(shape) {
+  var a = randInt(1, 6);
+  var t = 0;
+  while (t === 0) t = randInt(-9, 9);
+  return buildRestr(shape, a, t);
+}
+
+var SHAPES = ["simpNum", "simpVar1", "simpVar2", "meIn", "meOut", "compare", "restrPlain", "restrDenom"];
+
+function generateItem(shape) {
+  switch (shape) {
+    case "simpNum": return genSimpNum();
+    case "simpVar1": case "simpVar2": return genSimpVar(shape);
+    case "meIn": return genMeIn();
+    case "meOut": return genMeOut();
+    case "compare": return genCompare();
+    case "restrPlain": case "restrDenom": return genRestr(shape);
+  }
+  throw new Error("Unknown shape: " + shape);
+}
+
+// The spec's sample item for each mode — used as the fully worked opener.
+var SAMPLE_ITEMS = {
+  numbers: buildSimpNum(2, 6, 5),
+  variables: buildSimpVar("simpVar1", 3, 2, 5, [{ name: "y", out: 2, "in": 0 }]),
+  mixedentire: buildMeIn(3, 6, 4),
+  compare: buildCompare(2, [
+    { coeff: 5, radicand: 2 }, { coeff: 2, radicand: 11 }, { coeff: 3, radicand: 5 }
+  ]),
+  restrictions: buildRestr("restrDenom", 2, -3)
+};
+
+// ---- Item text / answer text (plain, Unicode) ----
+
+function itemText(item) {
+  var p = item.params;
+  switch (item.shape) {
+    case "simpNum": case "meOut":
+      return rootSym(p.index) + p.radicand;
+    case "meIn":
+      return radicalText(p.coeff, p.index, String(p.leftover));
+    case "simpVar1": case "simpVar2":
+      return rootSym(p.index) + p.radicandNum + varProductText(p.varOrder, p.totals);
+    case "compare":
+      return p.terms.map(function (t, i) {
+        return "(" + (i + 1) + ") " + radicalText(t.coeff, p.index, String(t.radicand));
+      }).join("   ");
+    case "restrPlain":
+      return rootSym(2) + "(" + linearText(p) + ")";
+    case "restrDenom":
+      return "1 / " + rootSym(2) + "(" + linearText(p) + ")";
+  }
+  return "";
+}
+
+function answerText(item) {
+  var k = item.key, p = item.params;
+  switch (item.shape) {
+    case "simpNum": case "meOut":
+      return radicalText(k.coeff, p.index, String(k.radicand));
+    case "meIn":
+      return rootSym(p.index) + k.radicand;
+    case "simpVar1": case "simpVar2": {
+      var inside = (k.inNum === 1 ? "" : String(k.inNum)) + varProductText(p.varOrder, k.inVars);
+      return (k.coeff === 1 ? "" : String(k.coeff)) + varProductText(p.varOrder, k.outVars) + rootSym(p.index) + inside;
+    }
+    case "compare":
+      return k.order.map(function (i) {
+        return radicalText(p.terms[i].coeff, p.index, String(p.terms[i].radicand));
+      }).join(" < ");
+    case "restrPlain": case "restrDenom":
+      return "x " + k.relation + " " + k.boundary;
+  }
+  return "";
+}
+
+// ---- Step decompositions (used for interactive steps, faded items, and worked examples) ----
+// Each step: { id, title, prompt, fields: [{key, label, kind: "int"|"choice", options}],
+//             values: {fieldKey: correctValue}, shown: worked text for this step }
+
+function stepDefs(item) {
+  var p = item.params, k = item.key, shape = item.shape;
+  var powerWord = p.index === 2 ? "square" : "cube";
+
+  if (shape === "simpNum" || shape === "meOut") {
+    return [
+      { id: "factor",
+        title: "Step 1 — Largest perfect " + powerWord + " factor",
+        prompt: "Find the largest perfect " + powerWord + " that divides " + p.radicand + ".",
+        fields: [{ key: "factor", label: "Perfect " + powerWord + " factor", kind: "int" }],
+        values: { factor: k.factor },
+        shown: p.radicand + " = " + k.factor + " × " + k.radicand + " — the largest perfect " + powerWord + " factor of " + p.radicand + " is " + k.factor + "." },
+      { id: "form",
+        title: "Step 2 — Simplified form",
+        prompt: "Take the root of that factor out front, and leave the rest inside. Enter the coefficient and the radicand left inside.",
+        fields: [
+          { key: "coeff", label: "Coefficient", kind: "int" },
+          { key: "radicand", label: "Radicand left inside", kind: "int" }
+        ],
+        values: { coeff: k.coeff, radicand: k.radicand },
+        shown: rootSym(p.index) + p.radicand + " = " + rootSym(p.index) + k.factor + " × " + rootSym(p.index) + k.radicand + " = " + answerText(item) + "." }
+    ];
+  }
+
+  if (shape === "meIn") {
+    return [
+      { id: "power",
+        title: "Step 1 — Raise the coefficient to the index",
+        prompt: "The coefficient " + p.coeff + " moves inside as " + p.coeff + supText(p.index) + ". What is " + p.coeff + supText(p.index) + "?",
+        fields: [{ key: "power", label: p.coeff + supText(p.index) + " =", kind: "int" }],
+        values: { power: k.power },
+        shown: p.coeff + supText(p.index) + " = " + k.power + "." },
+      { id: "entire",
+        title: "Step 2 — Entire radicand",
+        prompt: "Multiply that by the radicand already inside (" + p.leftover + ") to get the single number under the radical.",
+        fields: [{ key: "radicand", label: "Entire radicand", kind: "int" }],
+        values: { radicand: k.radicand },
+        shown: k.power + " × " + p.leftover + " = " + k.radicand + ", so " + itemText(item) + " = " + answerText(item) + "." }
+    ];
+  }
+
+  if (shape === "simpVar1" || shape === "simpVar2") {
+    var fields = [], values = {}, shownParts = [];
+    p.varOrder.forEach(function (name) {
+      fields.push({ key: "out_" + name, label: "Exponent of " + name + " outside", kind: "int" });
+      fields.push({ key: "in_" + name, label: "Exponent of " + name + " left inside", kind: "int" });
+      values["out_" + name] = k.outVars[name];
+      values["in_" + name] = k.inVars[name];
+      var stay = k.inVars[name] === 0 ? "nothing stays inside" : varFactorText(name, k.inVars[name]) + " stays inside";
+      shownParts.push(name + supText(p.totals[name]) + ": " + p.totals[name] + " = " + p.index + " × " + k.outVars[name] + " + " + k.inVars[name] +
+        ", so " + varFactorText(name, k.outVars[name]) + " comes out and " + stay + ".");
+    });
+    return [
+      { id: "number",
+        title: "Step 1 — Split the number part",
+        prompt: "Look only at the number inside the radical, " + p.radicandNum + ". What coefficient comes out front, and what number stays inside?",
+        fields: [
+          { key: "coeff", label: "Coefficient outside", kind: "int" },
+          { key: "inNum", label: "Number left inside", kind: "int" }
+        ],
+        values: { coeff: k.coeff, inNum: k.inNum },
+        shown: p.radicandNum + " = " + Math.pow(k.coeff, p.index) + " × " + k.inNum + ", so the number part gives coefficient " + k.coeff + " outside and " + k.inNum + " left inside." },
+      { id: "vars",
+        title: "Step 2 — Extract the variables",
+        prompt: "For each variable, split its total exponent: total = index × (exponent outside) + (exponent left inside). Enter both exponents for each variable.",
+        fields: fields,
+        values: values,
+        shown: shownParts.join(" ") + " Recombined: " + answerText(item) + "." }
+    ];
+  }
+
+  if (shape === "compare") {
+    var entireFields = p.terms.map(function (t, i) {
+      return { key: "e" + i, label: "Entire radicand of radical " + (i + 1) + " (" + radicalText(t.coeff, p.index, String(t.radicand)) + ")", kind: "int" };
+    });
+    var entireValues = {};
+    k.entire.forEach(function (e, i) { entireValues["e" + i] = e; });
+    var orderOpts = p.terms.map(function (t, i) {
+      return { v: String(i), t: "Radical " + (i + 1) + " — " + radicalText(t.coeff, p.index, String(t.radicand)) };
+    });
+    return [
+      { id: "entire",
+        title: "Step 1 — Convert each to an entire radical",
+        prompt: "For each radical, raise its coefficient to the index (" + p.index + ") and multiply by its radicand.",
+        fields: entireFields,
+        values: entireValues,
+        shown: p.terms.map(function (t, i) {
+          return radicalText(t.coeff, p.index, String(t.radicand)) + " = " + rootSym(p.index) + k.entire[i];
+        }).join(", ") + "." },
+      { id: "order",
+        title: "Step 2 — Order them",
+        prompt: "Now that all three are entire radicals, compare their radicands and place the original radicals in order.",
+        fields: [
+          { key: "smallest", label: "Smallest", kind: "choice", options: orderOpts },
+          { key: "middle", label: "Middle", kind: "choice", options: orderOpts },
+          { key: "largest", label: "Largest", kind: "choice", options: orderOpts }
+        ],
+        values: { smallest: String(k.order[0]), middle: String(k.order[1]), largest: String(k.order[2]) },
+        shown: "Comparing radicands: " + k.entire[k.order[0]] + " < " + k.entire[k.order[1]] + " < " + k.entire[k.order[2]] +
+          ", so in order: " + answerText(item) + "." }
+    ];
+  }
+
+  if (shape === "restrPlain" || shape === "restrDenom") {
+    var lin = linearText(p);
+    return [
+      { id: "relation",
+        title: "Step 1 — Set up the condition",
+        prompt: shape === "restrDenom"
+          ? "The radical sits in a denominator, so the radicand must be greater than 0 — it cannot equal 0, or the denominator would be 0. Choose the relation for x."
+          : "A square root is defined when its radicand is 0 or more. Choose the relation for x.",
+        fields: [{ key: "rel", label: "Relation", kind: "choice", options: [
+          { v: "≥", t: "≥ (radicand may equal 0)" },
+          { v: ">", t: "> (radicand must be greater than 0)" }
+        ] }],
+        values: { rel: k.relation },
+        shown: "The expression is defined when " + lin + " " + k.relation + " 0." },
+      { id: "boundary",
+        title: "Step 2 — Solve for the boundary",
+        prompt: "Solve the inequality from Step 1 and enter the boundary value (the number after the relation sign in x ___ ).",
+        fields: [{ key: "boundary", label: "Boundary value", kind: "int" }],
+        values: { boundary: k.boundary },
+        shown: lin + " " + k.relation + " 0 gives x " + k.relation + " " + k.boundary + "." }
+    ];
+  }
+
+  throw new Error("No stepDefs for shape: " + shape);
+}
+
+function solutionLines(item) {
+  var lines = stepDefs(item).map(function (s) { return s.shown; });
+  lines.push("Answer: " + answerText(item));
+  return lines;
+}
+// ==END GENERATOR==
+
+// ---- UI ----
+
+var MODES = {
+  numbers:     { label: "Simplify — numbers",   shapes: ["simpNum"] },
+  variables:   { label: "Simplify — variables", shapes: ["simpVar1", "simpVar2"] },
+  mixedentire: { label: "Mixed ↔ Entire",       shapes: ["meIn", "meOut"] },
+  compare:     { label: "Compare and Order",    shapes: ["compare"] },
+  restrictions:{ label: "Restrictions",         shapes: ["restrPlain", "restrDenom"] },
+  mixed:       { label: "Mixed set",            shapes: SHAPES }
+};
+var MODE_KEYS = ["numbers", "variables", "mixedentire", "compare", "restrictions"];
+
+// Extra worked line shown with the variables opener (the spec's second sample).
+var EXTRA_WORKED = {
+  variables: "The same method with a square root: √(75x²) = 5x√3 — 75 = 25 × 3 gives coefficient 5 with 3 left inside, and x² comes out as x."
+};
+
+var modeSelect = document.getElementById("modeSelect");
+var newSetBtn = document.getElementById("newSetBtn");
+var scoreLine = document.getElementById("scoreLine");
+var kindTag = document.getElementById("kindTag");
+var roleTag = document.getElementById("roleTag");
+var itemDisplay = document.getElementById("itemDisplay");
+var itemNote = document.getElementById("itemNote");
+var stepsContainer = document.getElementById("stepsContainer");
+var nextBtn = document.getElementById("nextBtn");
+var continueBtn = document.getElementById("continueBtn");
+var solutionPanel = document.getElementById("solutionPanel");
+var solutionLinesEl = document.getElementById("solutionLines");
+var summaryPanel = document.getElementById("summaryPanel");
+
+var session = [];        // [{item, role}] role: "worked" | "faded" | "practice"
+var sessionIndex = 0;
+var finishedCount = 0;
+var helpItemCount = 0;
+var stepsDone = 0;
+var stepsTotal = 0;
+var currentHelpUsed = false;
+var currentCounted = false;
+
+function escapeHTML(s) {
+  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+function radHTML(index, inner) {
+  return (index === 3 ? "<sup class=\"idx\">3</sup>" : "") + "√<span class=\"rad\">" + inner + "</span>";
+}
+function varHTML(name, exp) {
+  if (exp === 0) return "";
+  return exp === 1 ? name : name + "<sup>" + exp + "</sup>";
+}
+function itemHTML(item) {
+  var p = item.params;
+  switch (item.shape) {
+    case "simpNum": case "meOut":
+      return radHTML(p.index, String(p.radicand));
+    case "meIn":
+      return (p.coeff === 1 ? "" : String(p.coeff)) + radHTML(p.index, String(p.leftover));
+    case "simpVar1": case "simpVar2": {
+      var inner = String(p.radicandNum) + p.varOrder.map(function (n) { return varHTML(n, p.totals[n]); }).join("");
+      return radHTML(p.index, inner);
+    }
+    case "compare":
+      return p.terms.map(function (t, i) {
+        return "<span class=\"cmpterm\"><span class=\"cmpnum\">(" + (i + 1) + ")</span> " +
+          (t.coeff === 1 ? "" : String(t.coeff)) + radHTML(p.index, String(t.radicand)) + "</span>";
+      }).join("");
+    case "restrPlain":
+      return radHTML(2, escapeHTML(linearText(p)));
+    case "restrDenom":
+      return "1 / " + radHTML(2, escapeHTML(linearText(p)));
+  }
+  return "";
+}
+function shapeLabel(item) {
+  switch (item.shape) {
+    case "simpNum": return "Simplify — numbers (" + (item.params.index === 2 ? "square root" : "cube root") + ")";
+    case "simpVar1": case "simpVar2": return "Simplify — variables";
+    case "meIn": return "Mixed → Entire";
+    case "meOut": return "Entire → Mixed";
+    case "compare": return "Compare and Order";
+    case "restrPlain": return "Restrictions";
+    case "restrDenom": return "Restrictions (radical in a denominator)";
+  }
+  return item.shape;
+}
+function noteFor(entry) {
+  var item = entry.item;
+  if (item.shape === "simpVar1" || item.shape === "simpVar2") {
+    return "Assume all variables are non-negative (x ≥ 0), so √(x²) = x — exponents split by the index.";
+  }
+  if (item.shape === "compare") return "Strategy: convert every radical to an entire radical, then compare the radicands.";
+  if (item.shape === "restrDenom") return "Careful: a denominator can never be 0.";
+  if (entry.role === "worked") return "Study this worked example — each step is shown.";
+  if (entry.role === "faded") return "The first step is done for you. Finish the last step yourself.";
+  return "";
+}
+
+function updateScore() {
+  var pos = session.length ? Math.min(sessionIndex + 1, session.length) : 0;
+  scoreLine.innerHTML = "Item <strong>" + pos + "</strong> of <strong>" + session.length + "</strong>" +
+    " · Finished: <strong>" + finishedCount + "</strong>" +
+    " · Help used on <strong>" + helpItemCount + "</strong> item" + (helpItemCount === 1 ? "" : "s");
+}
+
+function parseIntField(el) {
+  var v = el.value.trim();
+  if (!/^[+-]?\d+$/.test(v)) return null;
+  return parseInt(v, 10);
+}
+
+function makeFieldControl(stepId, f) {
+  var wrap = document.createElement("div");
+  wrap.className = "field";
+  var lab = document.createElement("label");
+  var id = "in-" + stepId + "-" + f.key;
+  lab.setAttribute("for", id);
+  lab.textContent = f.label;
+  wrap.appendChild(lab);
+  var control;
+  if (f.kind === "choice") {
+    control = document.createElement("select");
+    control.id = id;
+    var ph = document.createElement("option");
+    ph.value = "";
+    ph.textContent = "Choose…";
+    control.appendChild(ph);
+    f.options.forEach(function (o) {
+      var opt = document.createElement("option");
+      opt.value = o.v;
+      opt.textContent = o.t;
+      control.appendChild(opt);
+    });
+  } else {
+    control = document.createElement("input");
+    control.type = "text";
+    control.inputMode = "numeric";
+    control.autocomplete = "off";
+    control.id = id;
+  }
+  wrap.appendChild(control);
+  return { wrap: wrap, control: control, field: f };
+}
+
+function buildShownStep(stepDef) {
+  var card = document.createElement("section");
+  card.className = "step given";
+  var h = document.createElement("h3");
+  h.textContent = stepDef.title + " — shown";
+  card.appendChild(h);
+  var line = document.createElement("p");
+  line.className = "shownline";
+  line.textContent = stepDef.shown;
+  card.appendChild(line);
+  return card;
+}
+
+function buildInteractiveStep(stepDef) {
+  var card = document.createElement("section");
+  card.className = "step";
+  var h = document.createElement("h3");
+  h.textContent = stepDef.title;
+  card.appendChild(h);
+  var prompt = document.createElement("p");
+  prompt.className = "prompt";
+  prompt.textContent = stepDef.prompt;
+  card.appendChild(prompt);
+  var fieldsDiv = document.createElement("div");
+  fieldsDiv.className = "fields";
+  var made = stepDef.fields.map(function (f) {
+    var m = makeFieldControl(stepDef.id, f);
+    fieldsDiv.appendChild(m.wrap);
+    return m;
+  });
+  card.appendChild(fieldsDiv);
+  var btns = document.createElement("div");
+  btns.className = "stepbtns";
+  var checkBtn = document.createElement("button");
+  checkBtn.type = "button";
+  checkBtn.textContent = "Check";
+  var revealBtn = document.createElement("button");
+  revealBtn.type = "button";
+  revealBtn.className = "secondary";
+  revealBtn.textContent = "Show this step";
+  btns.appendChild(checkBtn);
+  btns.appendChild(revealBtn);
+  card.appendChild(btns);
+  var feedback = document.createElement("p");
+  feedback.className = "feedback";
+  feedback.setAttribute("aria-live", "polite");
+  card.appendChild(feedback);
+
+  var done = false;
+  function finishStep(wasReveal) {
+    if (done) return;
+    done = true;
+    card.classList.add("done");
+    made.forEach(function (m) { m.control.disabled = true; });
+    checkBtn.disabled = true;
+    revealBtn.disabled = true;
+    feedback.className = "feedback ok";
+    feedback.textContent = wasReveal ? "Step shown. Try the next one yourself." : "✓ Correct.";
+    stepsDone++;
+    maybeCompleteItem();
+  }
+  checkBtn.addEventListener("click", function () {
+    var okAll = true, okParse = true;
+    made.forEach(function (m) {
+      var expected = stepDef.values[m.field.key];
+      if (m.field.kind === "choice") {
+        if (m.control.value === "") okParse = false;
+        else if (m.control.value !== String(expected)) okAll = false;
+      } else {
+        var v = parseIntField(m.control);
+        if (v === null) okParse = false;
+        else if (v !== expected) okAll = false;
+      }
+    });
+    if (!okParse) {
+      feedback.className = "feedback bad";
+      feedback.textContent = "Fill in every box first" + (stepDef.fields.some(function (f) { return f.kind === "int"; }) ? " (whole numbers only)" : "") + ".";
+      return;
+    }
+    if (okAll) finishStep(false);
+    else {
+      feedback.className = "feedback bad";
+      feedback.textContent = "✗ Not yet — check your work and try again.";
+    }
+  });
+  revealBtn.addEventListener("click", function () {
+    currentHelpUsed = true;
+    made.forEach(function (m) { m.control.value = String(stepDef.values[m.field.key]); });
+    finishStep(true);
+  });
+  return card;
+}
+
+function maybeCompleteItem() {
+  if (stepsTotal > 0 && stepsDone >= stepsTotal && !currentCounted) {
+    currentCounted = true;
+    finishedCount++;
+    if (currentHelpUsed) helpItemCount++;
+    updateScore();
+    showSolution();
+    nextBtn.textContent = sessionIndex >= session.length - 1 ? "See session results" : "Next item";
+    nextBtn.classList.remove("hidden");
+  }
+}
+
+function showSolution() {
+  var entry = session[sessionIndex];
+  if (!entry) return;
+  solutionLinesEl.innerHTML = "";
+  solutionLines(entry.item).forEach(function (line) {
+    var d = document.createElement("div");
+    d.className = "line";
+    d.textContent = line;
+    solutionLinesEl.appendChild(d);
+  });
+  solutionPanel.classList.remove("hidden");
+}
+
+function renderCurrent() {
+  var entry = session[sessionIndex];
+  currentCounted = false;
+  currentHelpUsed = false;
+  stepsDone = 0;
+  stepsTotal = 0;
+  solutionPanel.classList.add("hidden");
+  solutionLinesEl.innerHTML = "";
+  summaryPanel.classList.add("hidden");
+  nextBtn.classList.add("hidden");
+  continueBtn.classList.add("hidden");
+  kindTag.textContent = shapeLabel(entry.item);
+  roleTag.textContent = entry.role === "worked" ? "Worked example" : entry.role === "faded" ? "Faded practice" : "Your turn";
+  itemDisplay.innerHTML = itemHTML(entry.item);
+  itemNote.textContent = noteFor(entry);
+  updateScore();
+  stepsContainer.innerHTML = "";
+
+  var defs = stepDefs(entry.item);
+  if (entry.role === "worked") {
+    defs.forEach(function (d) { stepsContainer.appendChild(buildShownStep(d)); });
+    if (EXTRA_WORKED[modeSelect.value]) {
+      var extra = document.createElement("p");
+      extra.className = "eq-label";
+      extra.textContent = EXTRA_WORKED[modeSelect.value];
+      stepsContainer.appendChild(extra);
+    }
+    continueBtn.textContent = "I've studied this — continue";
+    continueBtn.classList.remove("hidden");
+  } else if (entry.role === "faded") {
+    defs.slice(0, -1).forEach(function (d) { stepsContainer.appendChild(buildShownStep(d)); });
+    stepsTotal = 1;
+    stepsContainer.appendChild(buildInteractiveStep(defs[defs.length - 1]));
+  } else {
+    stepsTotal = defs.length;
+    defs.forEach(function (d) { stepsContainer.appendChild(buildInteractiveStep(d)); });
+  }
+  var firstInput = stepsContainer.querySelector("input, select");
+  if (firstInput) firstInput.focus();
+}
+
+function showSummary() {
+  stepsContainer.innerHTML = "";
+  itemDisplay.innerHTML = "";
+  itemNote.textContent = "";
+  kindTag.textContent = MODES[modeSelect.value].label;
+  roleTag.textContent = "Session complete";
+  solutionPanel.classList.add("hidden");
+  nextBtn.classList.add("hidden");
+  continueBtn.classList.add("hidden");
+  summaryPanel.innerHTML = "";
+  var p = document.createElement("p");
+  p.className = "summary";
+  p.textContent = "Set complete: " + finishedCount + " of " + session.length + " items finished. " +
+    (helpItemCount === 0
+      ? "No steps were shown — nice work."
+      : "Help was used on " + helpItemCount + " item" + (helpItemCount === 1 ? "" : "s") + " (no penalty — that's what it's for).") +
+    " Start a new set to keep practising.";
+  summaryPanel.appendChild(p);
+  var b = document.createElement("button");
+  b.type = "button";
+  b.textContent = "New set";
+  b.addEventListener("click", startSession);
+  var ctr = document.createElement("div");
+  ctr.className = "navbtns";
+  ctr.style.justifyContent = "center";
+  ctr.appendChild(b);
+  summaryPanel.appendChild(ctr);
+  summaryPanel.classList.remove("hidden");
+  updateScore();
+}
+
+function startSession() {
+  var modeKey = modeSelect.value;
+  var mode = MODES[modeKey];
+  var sampleMode = modeKey === "mixed" ? pickFrom(MODE_KEYS) : modeKey;
+  var sample = SAMPLE_ITEMS[sampleMode];
+  session = [
+    { item: sample, role: "worked" },
+    { item: generateItem(sample.shape), role: "faded" }
+  ];
+  for (var i = 0; i < 8; i++) {
+    session.push({ item: generateItem(pickFrom(mode.shapes)), role: "practice" });
+  }
+  sessionIndex = 0;
+  finishedCount = 0;
+  helpItemCount = 0;
+  renderCurrent();
+}
+
+continueBtn.addEventListener("click", function () {
+  if (currentCounted) return;
+  currentCounted = true;
+  finishedCount++;
+  updateScore();
+  showSolution();
+  continueBtn.classList.add("hidden");
+  nextBtn.textContent = sessionIndex >= session.length - 1 ? "See session results" : "Next item";
+  nextBtn.classList.remove("hidden");
+});
+nextBtn.addEventListener("click", function () {
+  sessionIndex++;
+  if (sessionIndex >= session.length) showSummary();
+  else renderCurrent();
+});
+newSetBtn.addEventListener("click", startSession);
+modeSelect.addEventListener("change", startSession);
+startSession();
+</script>
+</body>
+</html>
